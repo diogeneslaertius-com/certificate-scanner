@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy>=2.0
+pymupdf
+httpx
+pyyaml
+python-dotenv
+python-multipart
+pytest
