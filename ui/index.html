@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>certscan</title>
+<style>
+:root{--bg:#0b0d14;--bg2:#141826;--card:rgba(255,255,255,.045);--bd:rgba(255,255,255,.1);--tx:#e8eaf3;--mut:#8b91a7;--ac:#7c8cff;--ac2:#c084fc;--ok:#34d399;--warn:#fbbf24;--bad:#f87171;--info:#60a5fa;--in:rgba(0,0,0,.28)}
+:root[data-theme=light]{--bg:#f3f4fb;--bg2:#fff;--card:rgba(255,255,255,.85);--bd:rgba(20,24,50,.12);--tx:#171a2b;--mut:#666c8c;--ac:#5b6cff;--ac2:#a855f7;--in:#fff}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--tx);min-height:100vh;
+background:radial-gradient(900px 500px at 8% -10%,color-mix(in srgb,var(--ac) 22%,transparent),transparent),radial-gradient(800px 500px at 100% 0,color-mix(in srgb,var(--ac2) 18%,transparent),transparent),var(--bg)}
+header{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--bd);backdrop-filter:blur(12px);position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 70%,transparent)}
+.logo{font-weight:700;font-size:18px;letter-spacing:.2px;display:flex;align-items:center;gap:9px}
+.logo b{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;color:#fff;font-size:15px}
+.sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--bd);border-radius:99px;background:var(--card);font-size:12.5px;color:var(--mut);white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--mut)}
+.pill.on i{background:var(--ok);box-shadow:0 0 8px var(--ok)}.pill.demo i{background:var(--warn)}.pill.off i{background:var(--bad)}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{border:1px solid var(--bd);background:var(--card);padding:7px 14px;border-radius:10px;transition:.15s}
+.btn:hover{border-color:var(--ac);transform:translateY(-1px)}
+.btn.pri{background:linear-gradient(135deg,var(--ac),var(--ac2));border:0;color:#fff;font-weight:600}
+.btn.ic{padding:7px 10px}
+.btn:disabled{opacity:.5;cursor:default;transform:none}
+.app{display:grid;grid-template-columns:370px 1fr;gap:18px;padding:18px 22px;max-width:1600px;margin:auto}
+@media(max-width:1000px){.app{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;backdrop-filter:blur(10px)}
+.drop{padding:22px 16px;text-align:center;border:2px dashed var(--bd);border-radius:16px;cursor:pointer;transition:.2s;color:var(--mut)}
+.drop:hover,.drop.over{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,transparent);color:var(--tx)}
+.drop svg{width:34px;height:34px;stroke:var(--ac);margin-bottom:6px}
+.drop b{display:block;color:var(--tx);font-size:15px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
+.chip{border:1px solid var(--bd);background:transparent;padding:4px 11px;border-radius:99px;font-size:12.5px;color:var(--mut)}
+.chip.act{background:var(--ac);border-color:var(--ac);color:#fff}
+.list{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 330px);overflow:auto;padding-right:2px}
+.item{padding:11px 13px;border:1px solid var(--bd);border-radius:13px;background:var(--card);cursor:pointer;transition:.15s}
+.item:hover{border-color:color-mix(in srgb,var(--ac) 60%,transparent)}
+.item.sel{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac) inset}
+.item .t{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.item .n{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .s{color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.st{font-size:11.5px;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap}
+.st.auto{background:color-mix(in srgb,var(--info) 20%,transparent);color:var(--info)}
+.st.needs_review{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn)}
+.st.confirmed{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.st.run{background:color-mix(in srgb,var(--ac) 22%,transparent);color:var(--ac)}
+.st.err{background:color-mix(in srgb,var(--bad) 20%,transparent);color:var(--bad)}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:r .7s linear infinite;vertical-align:-1px;margin-right:5px}
+@keyframes r{to{transform:rotate(360deg)}}
+.detail{padding:18px;min-height:540px}
+.empty{display:grid;place-items:center;height:480px;color:var(--mut);text-align:center}
+.dh{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.dh h2{margin:0;font-size:17px;flex:1;min-width:200px;overflow:hidden;text-overflow:ellipsis}
+.dg{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.15fr);gap:18px}
+@media(max-width:1250px){.dg{grid-template-columns:1fr}}
+.pv{border:1px solid var(--bd);border-radius:13px;overflow:hidden;background:var(--in);min-height:420px;display:grid;place-items:center;color:var(--mut)}
+.pv img,.pv iframe{width:100%;height:100%;min-height:520px;border:0;object-fit:contain;background:#fff}
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fm .w{grid-column:1/-1}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+input,select{width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--bd);background:var(--in);color:var(--tx);font:inherit;outline:0;transition:.15s}
+input:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 25%,transparent)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--mut)}
+.dot.g{background:var(--ok)}.dot.y{background:var(--warn)}.dot.b{background:var(--info)}
+.legend{font-size:12px;color:var(--mut);display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}
+.legend span{display:flex;align-items:center;gap:5px}
+.acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:var(--bg2);border-left:1px solid var(--bd);padding:22px;transform:translateX(105%);transition:.25s;z-index:20;overflow:auto;box-shadow:-20px 0 60px rgba(0,0,0,.35)}
+.drawer.open{transform:none}
+.drawer h3{margin:0 0 4px}.drawer p{color:var(--mut);margin:0 0 16px;font-size:13px}
+.drawer .row{margin-bottom:14px}
+.kw{display:flex;gap:6px}
+.note{font-size:12px;color:var(--mut);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-top:6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);background:var(--bg2);border:1px solid var(--bd);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}.toast.bad{border-color:var(--bad)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><b>✓</b>certscan</div>
+  <div class="sp"></div>
+  <span class="pill" id="pill"><i></i><span id="pillt">…</span></span>
+  <button class="btn ic" id="theme" title="Тема">◐</button>
+  <button class="btn" id="csv">Экспорт CSV</button>
+  <button class="btn pri" id="cfgb">Настройки и ключи</button>
+</header>
+
+<div class="app">
+  <aside>
+    <div class="drop" id="drop">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>
+      <b>Перетащите сертификаты сюда</b>
+      PDF, JPG или PNG, можно несколько
+      <input type="file" id="fi" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" multiple hidden>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="list" id="list"></div>
+  </aside>
+  <main class="card detail" id="detail"></main>
+</div>
+
+<div class="drawer" id="drawer">
+  <h3>Настройки</h3>
+  <p>Ключи хранятся только в этом браузере и уходят на ваш бэкенд в заголовках запроса.</p>
+  <div class="row"><label>Провайдер</label>
+    <select id="c_provider"><option value="gemini">Gemini (Google)</option><option value="groq">Groq</option></select></div>
+  <div class="row"><label>Модель (пусто = из config.yaml)</label><input id="c_model" placeholder="например gemini-3.6-flash"></div>
+  <div class="row"><label>GEMINI_API_KEY</label><div class="kw"><input id="c_gemini" type="password" autocomplete="off" placeholder="AIza…"><button class="btn ic" data-eye="c_gemini">👁</button></div></div>
+  <div class="row"><label>GROQ_API_KEY</label><div class="kw"><input id="c_groq" type="password" autocomplete="off" placeholder="gsk_…"><button class="btn ic" data-eye="c_groq">👁</button></div></div>
+  <div class="row"><label>Адрес бэкенда (пусто = тот же сервер)</label><input id="c_base" placeholder="http://localhost:8000"></div>
+  <div class="acts"><button class="btn pri" id="c_save">Сохранить и проверить</button><button class="btn" id="c_close">Закрыть</button><button class="btn" id="c_clear">Стереть ключи</button></div>
+  <div class="note">Сертификаты содержат ФИО и целиком уходят стороннему API. Для реальных данных нужно согласование.</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const D=["Искусственный интеллект","Программирование","Информационная безопасность","Цифровые технологии","Педагогика и методика преподавания","Другое"];
+const FORMS=["сертификат","свидетельство","удостоверение","другое"];
+const F=[["full_name","ФИО","w"],["course_title","Название курса","w"],["organization","Организация","w"],["city","Город"],["country_code","Страна (ISO, 2 буквы)"],
+["date_start","Начало","date"],["date_end","Конец","date"],["hours","Часы","number"],["completion_form","Форма завершения","sel",FORMS],
+["direction","Направление","sel w",D],["department","Кафедра"],["position","Должность"]];
+const ST={auto:"Авто",needs_review:"Проверить",confirmed:"Подтверждено"};
+const S={recs:[],pend:[],sel:null,filter:"all",demo:false,online:false,health:null,
+  cfg:Object.assign({provider:"gemini",model:"",gemini:"",groq:"",base:""},JSON.parse(localStorage.getItem("certscan.cfg")||"{}"))};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const base=()=>S.cfg.base.replace(/\/$/,"");
+function toast(m,bad){const t=$("#toast");t.textContent=m;t.className="toast show"+(bad?" bad":"");clearTimeout(toast.t);toast.t=setTimeout(()=>t.className="toast",3800)}
+function hdr(){const c=S.cfg,h={"X-Provider":c.provider};if(c.model.trim())h["X-Model"]=c.model.trim();if(c.gemini.trim())h["X-Gemini-Key"]=c.gemini.trim();if(c.groq.trim())h["X-Groq-Key"]=c.groq.trim();return h}
+async function api(path,opt={}){
+  const r=await fetch(base()+path,opt);
+  if(!r.ok){let d=r.statusText;try{d=(await r.json()).detail||d}catch{}throw new Error(typeof d==="string"?d:JSON.stringify(d))}
+  return r.json();
+}
+
+/* ---------- connection ---------- */
+async function ping(){
+  try{S.health=await api("/health");S.online=true;S.demo=false;await loadRecs()}
+  catch{S.online=false;S.demo=true;if(!S.recs.length)S.recs=seed()}
+  pill();render();
+}
+function hasKey(){return !!S.cfg[S.cfg.provider].trim()||(S.health&&S.health.key_present&&S.health.provider===S.cfg.provider)}
+function pill(){
+  const p=$("#pill"),t=$("#pillt");
+  if(S.demo){p.className="pill demo";t.textContent="демо-режим: бэкенд не найден"}
+  else{p.className="pill "+(hasKey()?"on":"off");
+    const used=S.health?` · ${S.health.llm_calls_used}/${S.health.llm_calls_max}`:"";
+    t.textContent=`${S.cfg.provider}${S.cfg.model?" · "+S.cfg.model:""} · ${hasKey()?"ключ есть":"нет ключа"}${used}`}
+}
+async function loadRecs(){S.recs=await api("/api/records");if(S.sel&&!S.recs.find(r=>r.id===S.sel))S.sel=null}
+
+/* ---------- upload ---------- */
+async function handle(files){
+  for(const f of files){
+    const p={name:f.name,state:"run"};S.pend.push(p);render();
+    try{
+      let r;
+      if(S.demo)r=await mockUpload(f);
+      else{const fd=new FormData();fd.append("file",f);r=await api("/api/documents",{method:"POST",body:fd,headers:hdr()});
+        if(r.cached)toast(`«${f.name}» уже обработан раньше, LLM не вызывался`)}
+      S.recs=[r,...S.recs.filter(x=>x.id!==r.id)];S.sel=r.id;
+      S.pend=S.pend.filter(x=>x!==p);
+      if(!S.demo){try{S.health=await api("/health")}catch{}}
+    }catch(e){p.state="err";p.msg=e.message;toast(e.message,true)}
+    pill();render();
+  }
+}
+
+/* ---------- render ---------- */
+function render(){renderChips();renderList();renderDetail()}
+function renderChips(){
+  const c={all:S.recs.length};for(const r of S.recs)c[r.status]=(c[r.status]||0)+1;
+  const L=[["all","Все"],["needs_review","Проверить"],["auto","Авто"],["confirmed","Подтверждено"]];
+  $("#chips").innerHTML=L.map(([k,n])=>`<button class="chip ${S.filter===k?"act":""}" data-f="${k}">${n} ${c[k]||0}</button>`).join("");
+}
+function renderList(){
+  const pend=S.pend.map((p,i)=>`<div class="item" data-p="${i}"><div class="t"><span class="n">${esc(p.name)}</span>
+    <span class="st ${p.state}">${p.state==="run"?'<span class="spin"></span>Читаю':"Ошибка"}</span></div>
+    <div class="s">${p.state==="run"?"Модель разбирает документ…":esc(p.msg)+" (клик чтобы убрать)"}</div></div>`).join("");
+  const rows=S.recs.filter(r=>S.filter==="all"||r.status===S.filter).map(r=>`<div class="item ${r.id===S.sel?"sel":""}" data-id="${r.id}">
+    <div class="t"><span class="n">${esc(r.full_name||"Без ФИО")}</span><span class="st ${r.status}">${ST[r.status]||r.status}</span></div>
+    <div class="s">${esc(r.course_title||r.filename)}</div>
+    <div class="s">${esc([r.organization,r.hours&&r.hours+" ч",r.date_start].filter(Boolean).join(" · "))}</div></div>`).join("");
+  $("#list").innerHTML=pend+(rows||(pend?"":'<div class="s" style="padding:14px;color:var(--mut)">Здесь появятся обработанные сертификаты</div>'));
+}
+function dotFor(m){
+  if(!m)return"";
+  if(m.source==="manual")return'<span class="dot b" title="Изменено вручную"></span>';
+  const ev=m.evidence?`Цитата: «${esc(m.evidence)}»`:"Цитаты нет";
+  if(m.verified===true)return`<span class="dot g" title="Цитата найдена в тексте документа. ${ev}"></span>`;
+  if(m.verified===false)return`<span class="dot y" title="Цитаты нет в тексте, проверьте вручную. ${ev}"></span>`;
+  return`<span class="dot" title="Из изображения, автопроверки нет. ${ev}"></span>`;
+}
+function preview(r){
+  const u=r._url||(!S.demo&&r.document_id?`${base()}/api/documents/${r.document_id}/file`:null);
+  if(!u)return"Предпросмотр недоступен в демо-режиме для примеров";
+  const pdf=r._pdf??/\.pdf$/i.test(r.filename);
+  return pdf?`<iframe src="${u}"></iframe>`:`<img src="${u}" alt="">`;
+}
+function renderDetail(){
+  const r=S.recs.find(x=>x.id===S.sel),el=$("#detail");
+  if(!r){el.innerHTML='<div class="empty"><div><div style="font-size:42px">🗂</div><b>Выберите запись</b><br>или загрузите сертификат слева</div></div>';return}
+  const meta=r.field_meta||{},iss=(meta._issues||[]);
+  const fields=F.map(([k,l,t,opts])=>{
+    const w=(t||"").includes("w")?"w":"",v=r[k]??"";let inp;
+    if((t||"").startsWith("sel")){const o=[...opts];if(v&&!o.includes(v))o.push(v);
+      inp=`<select id="f_${k}"><option value=""></option>${o.map(x=>`<option ${x===v?"selected":""}>${esc(x)}</option>`).join("")}</select>`}
+    else inp=`<input id="f_${k}" type="${t==="date"||t==="number"?t:"text"}" value="${esc(v)}">`;
+    return`<div class="${w}"><label>${l} ${dotFor(meta[k])}</label>${inp}</div>`}).join("");
+  el.innerHTML=`<div class="dh"><h2>${esc(r.filename)}</h2><span class="st ${r.status}">${ST[r.status]}</span>
+    <span class="pill">${esc(r.mode==="text"?"текстовый слой":"изображение")} · ${esc(r.model||"")}</span></div>
+    ${iss.length?`<div class="note" style="margin:0 0 14px;border-color:var(--warn)">Требует внимания: ${esc(iss.join(", "))}</div>`:""}
+    <div class="dg"><div class="pv">${preview(r)}</div><div><div class="fm">${fields}
+      <div><label>Страна → охват</label><input disabled value="${esc({kz:"Казахстан",abroad:"Зарубежье",unknown:"Неизвестно"}[r.scope]||"")}"></div></div>
+      <div class="legend"><span><i class="dot g"></i>цитата найдена</span><span><i class="dot y"></i>не найдена</span><span><i class="dot"></i>из картинки</span><span><i class="dot b"></i>вручную</span></div>
+      <div class="acts"><button class="btn pri" id="ok">Подтвердить и сохранить</button><button class="btn" id="rv">Вернуть на проверку</button></div></div></div>`;
+}
+
+/* ---------- save ---------- */
+async function save(status){
+  const r=S.recs.find(x=>x.id===S.sel),body={};
+  for(const [k,,t] of F){
+    let v=$("#f_"+k).value.trim();v=v===""?null:v;
+    if(k==="hours"&&v!==null){v=parseInt(v,10);if(isNaN(v)||v<1)return toast("Часы должны быть целым числом",true)}
+    if(k==="country_code"&&v){v=v.toUpperCase();if(!/^[A-Z]{2}$/.test(v))return toast("Код страны: 2 латинские буквы",true)}
+    if(v!==(r[k]??null))body[k]=v;
+  }
+  if("country_code" in body)body.scope=body.country_code?(body.country_code==="KZ"?"kz":"abroad"):"unknown";
+  body.status=status;
+  try{
+    let n;
+    if(S.demo){n=Object.assign({},r,body);n.field_meta={...r.field_meta};for(const k in body)if(k!=="status")n.field_meta[k]={source:"manual"}}
+    else n=await api("/api/records/"+r.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    S.recs=S.recs.map(x=>x.id===r.id?Object.assign(n,{_url:r._url,_pdf:r._pdf}):x);
+    toast(status==="confirmed"?"Сохранено и подтверждено":"Возвращено на проверку");render();
+  }catch(e){toast(e.message,true)}
+}
+
+/* ---------- csv ---------- */
+function csv(){
+  if(!S.recs.length)return toast("Нет записей для экспорта",true);
+  const cols=["full_name","position","department","course_title","city","country_code","scope","date_start","date_end","organization","hours","completion_form","direction","status"];
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const t="\ufeff"+[cols.join(";"),...S.recs.map(r=>cols.map(c=>q(r[c])).join(";"))].join("\r\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv;charset=utf-8"}));a.download="certscan.csv";a.click();
+}
+
+/* ---------- demo ---------- */
+let mid=100;
+const mm=(o)=>Object.fromEntries(Object.entries(o).map(([k,v])=>[k,{source:"llm",evidence:String(v),verified:true}]));
+function seed(){return[
+ {id:1,document_id:1,filename:"cert_ai_2025.pdf",mode:"text",model:"gemini-3.6-flash",status:"auto",full_name:"Тестов Тест Тестович",course_title:"Основы машинного обучения",organization:"ТОО «Пример Академия»",city:"Астана",country_code:"KZ",scope:"kz",date_start:"2025-03-03",date_end:"2025-03-14",hours:72,completion_form:"сертификат",direction:"Искусственный интеллект",field_meta:mm({full_name:"выдан Тестов Тест Тестович",hours:"72 академических часа",organization:"ТОО «Пример Академия»"})},
+ {id:2,document_id:2,filename:"scan_0042.jpg",mode:"image",model:"gemini-3.6-flash",status:"needs_review",full_name:"Иванова Мария Сергеевна",course_title:"Кибербезопасность в образовании",organization:"Warsaw Tech Institute",city:"Warsaw",country_code:"PL",scope:"abroad",date_start:"2025-06-10",date_end:"2025-06-14",hours:null,completion_form:"удостоверение",direction:"Информационная безопасность",field_meta:{full_name:{source:"llm",evidence:"Иванова Мария Сергеевна",verified:null},organization:{source:"llm",evidence:"Warsaw Tech Institute",verified:null},_issues:["часы не найдены"]}},
+ {id:3,document_id:3,filename:"python_course.pdf",mode:"text",model:"gemini-3.6-flash",status:"confirmed",full_name:"Сериков Ерлан Нурланович",course_title:"Python для преподавателей",organization:"KBTU Digital",city:"Алматы",country_code:"KZ",scope:"kz",date_start:"2025-01-20",date_end:"2025-01-31",hours:48,completion_form:"сертификат",direction:"Программирование",field_meta:{full_name:{source:"manual"},hours:{source:"llm",evidence:"48 часов",verified:false}}}]}
+async function mockUpload(f){
+  await new Promise(r=>setTimeout(r,1500));
+  const pdf=/\.pdf$/i.test(f.name),i=++mid;
+  return{id:i,document_id:i,filename:f.name,mode:pdf?"text":"image",model:"demo",status:i%2?"auto":"needs_review",_url:URL.createObjectURL(f),_pdf:pdf,
+    full_name:"Демо Пример Образцович",course_title:"Цифровая педагогика",organization:"ТОО «Демо Академия»",city:"Астана",country_code:"KZ",scope:"kz",
+    date_start:"2025-09-01",date_end:"2025-09-10",hours:72,completion_form:"сертификат",direction:"Цифровые технологии",
+    field_meta:{full_name:{source:"llm",evidence:"Демо Пример Образцович",verified:pdf?true:null},hours:{source:"llm",evidence:"72 ч.",verified:pdf?false:null}}};
+}
+
+/* ---------- events ---------- */
+const drop=$("#drop"),fi=$("#fi");
+drop.onclick=()=>fi.click();
+fi.onchange=()=>{handle([...fi.files]);fi.value=""};
+["dragover","dragenter"].forEach(e=>drop.addEventListener(e,x=>{x.preventDefault();drop.classList.add("over")}));
+["dragleave","drop"].forEach(e=>drop.addEventListener(e,x=>{x.preventDefault();drop.classList.remove("over")}));
+drop.addEventListener("drop",e=>handle([...e.dataTransfer.files]));
+document.addEventListener("click",e=>{
+  const t=e.target;
+  const ch=t.closest("[data-f]");if(ch){S.filter=ch.dataset.f;render();return}
+  const it=t.closest("[data-id]");if(it){S.sel=+it.dataset.id;render();return}
+  const pe=t.closest("[data-p]");if(pe){const p=S.pend[+pe.dataset.p];if(p&&p.state==="err"){S.pend.splice(+pe.dataset.p,1);render()}return}
+  const ey=t.closest("[data-eye]");if(ey){const i=$("#"+ey.dataset.eye);i.type=i.type==="password"?"text":"password";return}
+  if(t.id==="ok")save("confirmed");if(t.id==="rv")save("needs_review");
+});
+$("#csv").onclick=csv;
+$("#theme").onclick=()=>{const d=document.documentElement,n=d.dataset.theme==="light"?"dark":"light";d.dataset.theme=n;localStorage.setItem("certscan.theme",n)};
+document.documentElement.dataset.theme=localStorage.getItem("certscan.theme")||(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");
+function fillCfg(){for(const k of["provider","model","gemini","groq","base"])$("#c_"+k).value=S.cfg[k]}
+$("#cfgb").onclick=()=>{fillCfg();$("#drawer").classList.add("open")};
+$("#c_close").onclick=()=>$("#drawer").classList.remove("open");
+$("#c_save").onclick=async()=>{
+  for(const k of["provider","model","gemini","groq","base"])S.cfg[k]=$("#c_"+k).value;
+  localStorage.setItem("certscan.cfg",JSON.stringify(S.cfg));
+  await ping();$("#drawer").classList.remove("open");
+  toast(S.demo?"Бэкенд не отвечает, включён демо-режим":"Подключено: "+(hasKey()?"ключ найден":"ключа нет, добавьте его"),S.demo||!hasKey());
+};
+$("#c_clear").onclick=()=>{S.cfg.gemini=S.cfg.groq="";localStorage.setItem("certscan.cfg",JSON.stringify(S.cfg));fillCfg();pill();toast("Ключи стёрты из браузера")};
+ping();
+</script>
+</body>
+</html>
